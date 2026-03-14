@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EC Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ===== サイドバー ===== */
+  .sidebar {
+    width: 220px;
+    background: #fff;
+    border-right: 1px solid #e5e7eb;
+    padding: 24px 0;
+    position: fixed;
+    height: 100vh;
+    overflow-y: auto;
+    z-index: 10;
+  }
+  .sidebar .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 20px 24px;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 16px;
+  }
+  .sidebar .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px;
+  }
+  .sidebar .logo-text {
+    font-size: 16px; font-weight: 700; color: #1a1a2e;
+  }
+  .sidebar .logo-text span { font-size: 11px; color: #9ca3af; display: block; font-weight: 400; }
+
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 20px; cursor: pointer;
+    color: #6b7280; font-size: 14px; font-weight: 500;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .nav-item:hover { background: #f3f4f6; color: #1a1a2e; }
+  .nav-item.active { background: #ede9fe; color: #6366f1; font-weight: 600; }
+  .nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+  /* ===== メインコンテンツ ===== */
+  .main {
+    margin-left: 220px;
+    flex: 1;
+    padding: 32px;
+    max-width: 1200px;
+  }
+
+  .header {
+    margin-bottom: 28px;
+  }
+  .header h1 {
+    font-size: 24px; font-weight: 700; margin-bottom: 4px;
+  }
+  .header p {
+    font-size: 13px; color: #9ca3af;
+  }
+  .header .last-update {
+    font-size: 12px; color: #6366f1; margin-top: 8px;
+    background: #ede9fe; display: inline-block; padding: 4px 12px; border-radius: 20px;
+  }
+
+  /* ===== KPIカード ===== */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  .kpi-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .kpi-card .icon {
+    width: 40px; height: 40px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; margin-bottom: 12px;
+  }
+  .kpi-card .label {
+    font-size: 12px; color: #9ca3af; font-weight: 500; margin-bottom: 4px;
+  }
+  .kpi-card .value {
+    font-size: 28px; font-weight: 700; line-height: 1.2;
+  }
+  .kpi-card .change {
+    font-size: 12px; font-weight: 600; margin-top: 8px;
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 2px 8px; border-radius: 10px;
+  }
+  .change.up { background: #d1fae5; color: #059669; }
+  .change.down { background: #fee2e2; color: #dc2626; }
+  .change.neutral { background: #f3f4f6; color: #6b7280; }
+
+  /* カードカラーテーマ */
+  .kpi-card.purple .icon { background: #ede9fe; color: #6366f1; }
+  .kpi-card.orange .icon { background: #fff7ed; color: #f97316; }
+  .kpi-card.green .icon { background: #d1fae5; color: #10b981; }
+  .kpi-card.pink .icon { background: #fce7f3; color: #ec4899; }
+  .kpi-card.blue .icon { background: #dbeafe; color: #3b82f6; }
+
+  /* ===== セクション ===== */
+  .section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  }
+  .section h2 {
+    font-size: 16px; font-weight: 700; margin-bottom: 16px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section h2 .badge {
+    font-size: 11px; background: #ede9fe; color: #6366f1;
+    padding: 2px 8px; border-radius: 10px; font-weight: 600;
+  }
+
+  /* テーブル */
+  table {
+    width: 100%; border-collapse: collapse;
+  }
+  th {
+    text-align: left; font-size: 12px; color: #9ca3af; font-weight: 600;
+    padding: 8px 12px; border-bottom: 2px solid #f3f4f6;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  td {
+    padding: 12px; border-bottom: 1px solid #f3f4f6;
+    font-size: 14px;
+  }
+  tr:hover { background: #fafafa; }
+  .rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    font-size: 13px; font-weight: 700;
+  }
+  .rank-1 { background: #fef3c7; color: #d97706; }
+  .rank-2 { background: #e5e7eb; color: #6b7280; }
+  .rank-3 { background: #fed7aa; color: #c2410c; }
+  .rank-other { background: #f3f4f6; color: #9ca3af; }
+
+  .stock-badge {
+    padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 600;
+  }
+  .stock-ok { background: #d1fae5; color: #059669; }
+  .stock-low { background: #fef3c7; color: #d97706; }
+  .stock-out { background: #fee2e2; color: #dc2626; }
+
+  .star { color: #f59e0b; }
+
+  /* レビューカード */
+  .review-card {
+    padding: 16px;
+    border: 1px solid #f3f4f6;
+    border-radius: 12px;
+    margin-bottom: 12px;
+  }
+  .review-card .review-header {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;
+  }
+  .review-card .reviewer { font-size: 13px; font-weight: 600; }
+  .review-card .review-date { font-size: 12px; color: #9ca3af; }
+  .review-card .review-text { font-size: 13px; color: #4b5563; line-height: 1.6; }
+  .review-card .review-product { font-size: 11px; color: #6366f1; margin-top: 6px; }
+
+  /* SNSセクション */
+  .sns-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;
+  }
+  .sns-card {
+    padding: 16px; border-radius: 12px; text-align: center;
+  }
+  .sns-card.x-card { background: #f0f0f0; }
+  .sns-card.ig-card { background: linear-gradient(135deg, #fce7f3, #fef3c7); }
+  .sns-card.tiktok-card { background: #e0f2fe; }
+  .sns-card .sns-name { font-size: 12px; font-weight: 600; margin-bottom: 8px; }
+  .sns-card .sns-value { font-size: 22px; font-weight: 700; }
+  .sns-card .sns-label { font-size: 11px; color: #6b7280; margin-top: 2px; }
+
+  /* 設定パネル */
+  .settings-panel {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .settings-panel h3 {
+    font-size: 14px; font-weight: 700; color: #92400e; margin-bottom: 8px;
+  }
+  .settings-panel p {
+    font-size: 13px; color: #78716c; line-height: 1.6;
+  }
+  .settings-panel input {
+    width: 100%; padding: 10px 14px; border: 1px solid #e5e7eb;
+    border-radius: 8px; font-size: 13px; margin-top: 8px;
+    font-family: 'Noto Sans JP', monospace;
+  }
+  .settings-panel button {
+    margin-top: 10px; padding: 8px 20px;
+    background: #6366f1; color: #fff; border: none; border-radius: 8px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background 0.2s;
+  }
+  .settings-panel button:hover { background: #4f46e5; }
+
+  /* 2カラムレイアウト */
+  .two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+  }
+  @media (max-width: 900px) {
+    .two-col { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { margin-left: 0; }
+  }
+
+  /* ローディング */
+  .loading {
+    text-align: center; padding: 40px; color: #9ca3af;
+  }
+  .loading .spinner {
+    width: 32px; height: 32px; border: 3px solid #e5e7eb;
+    border-top-color: #6366f1; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .nav-section-label {
+    font-size: 11px; color: #9ca3af; padding: 16px 20px 6px;
+    font-weight: 600; text-transform: uppercase; letter-spacing: 1px;
+  }
+</style>
+</head>
+<body>
+
+<!-- サイドバー -->
+<nav class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">EC</div>
+    <div class="logo-text">EC Dashboard<span>Amazon / 楽天</span></div>
+  </div>
+  <div class="nav-section-label">メニュー</div>
+  <a class="nav-item active" onclick="showPage('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0a1 1 0 01-1-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 01-1 1"/></svg>
+    ホーム
+  </a>
+  <a class="nav-item" onclick="showPage('inventory')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+    在庫管理
+  </a>
+  <a class="nav-item" onclick="showPage('ranking')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+    ランキング
+  </a>
+  <a class="nav-item" onclick="showPage('session')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+    セッション
+  </a>
+  <a class="nav-item" onclick="showPage('sns')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+    SNS
+  </a>
+  <a class="nav-item" onclick="showPage('reviews')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg>
+    レビュー
+  </a>
+  <div class="nav-section-label">設定</div>
+  <a class="nav-item" onclick="showPage('settings')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+    データ設定
+  </a>
+</nav>
+
+<!-- メインコンテンツ -->
+<div class="main">
+
+  <!-- ===== ホーム ===== -->
+  <div id="page-home">
+    <div class="header">
+      <h1>ダッシュボード</h1>
+      <p>Amazon / 楽天 EC運営の全体概要</p>
+      <div class="last-update" id="last-update">最終更新: --</div>
+    </div>
+
+    <div class="kpi-grid">
+      <div class="kpi-card purple">
+        <div class="icon">💰</div>
+        <div class="label">今月の売上</div>
+        <div class="value" id="kpi-sales">--</div>
+        <div class="change up" id="kpi-sales-change">-- %</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="icon">📦</div>
+        <div class="label">注文数</div>
+        <div class="value" id="kpi-orders">--</div>
+        <div class="change up" id="kpi-orders-change">-- %</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="icon">👁</div>
+        <div class="label">セッション数</div>
+        <div class="value" id="kpi-sessions">--</div>
+        <div class="change up" id="kpi-sessions-change">-- %</div>
+      </div>
+      <div class="kpi-card pink">
+        <div class="icon">⭐</div>
+        <div class="label">平均レビュー</div>
+        <div class="value" id="kpi-review">--</div>
+        <div class="change neutral" id="kpi-review-change">-- %</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="icon">📊</div>
+        <div class="label">転換率 (CVR)</div>
+        <div class="value" id="kpi-cvr">--</div>
+        <div class="change up" id="kpi-cvr-change">-- %</div>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="section">
+        <h2>📦 在庫アラート <span class="badge" id="stock-alert-count">0件</span></h2>
+        <table>
+          <thead><tr><th>商品名</th><th>在庫</th><th>状態</th></tr></thead>
+          <tbody id="stock-alert-table"><tr><td colspan="3" class="loading"><div class="spinner"></div>読み込み中...</td></tr></tbody>
+        </table>
+      </div>
+      <div class="section">
+        <h2>🏆 売上ランキング TOP5</h2>
+        <table>
+          <thead><tr><th>#</th><th>商品名</th><th>売上</th></tr></thead>
+          <tbody id="ranking-table"><tr><td colspan="3" class="loading"><div class="spinner"></div>読み込み中...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="section">
+        <h2>📱 SNS概要</h2>
+        <div class="sns-grid" id="sns-summary"></div>
+      </div>
+      <div class="section">
+        <h2>⭐ 最新レビュー</h2>
+        <div id="recent-reviews"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 在庫管理 ===== -->
+  <div id="page-inventory" style="display:none">
+    <div class="header"><h1>在庫管理</h1><p>全商品の在庫状況</p></div>
+    <div class="section">
+      <table>
+        <thead><tr><th>商品名</th><th>SKU</th><th>在庫数</th><th>状態</th><th>発注点</th></tr></thead>
+        <tbody id="full-inventory-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== ランキング ===== -->
+  <div id="page-ranking" style="display:none">
+    <div class="header"><h1>売上ランキング</h1><p>商品別の売上パフォーマンス</p></div>
+    <div class="section">
+      <table>
+        <thead><tr><th>#</th><th>商品名</th><th>売上</th><th>注文数</th><th>CVR</th></tr></thead>
+        <tbody id="full-ranking-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== セッション ===== -->
+  <div id="page-session" style="display:none">
+    <div class="header"><h1>セッション分析</h1><p>アクセス・PV・転換率</p></div>
+    <div class="kpi-grid">
+      <div class="kpi-card green">
+        <div class="icon">👁</div>
+        <div class="label">総セッション</div>
+        <div class="value" id="session-total">--</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="icon">📄</div>
+        <div class="label">ページビュー</div>
+        <div class="value" id="session-pv">--</div>
+      </div>
+      <div class="kpi-card purple">
+        <div class="icon">📊</div>
+        <div class="label">転換率</div>
+        <div class="value" id="session-cvr">--</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="icon">🛒</div>
+        <div class="label">カート追加率</div>
+        <div class="value" id="session-cart">--</div>
+      </div>
+    </div>
+    <div class="section">
+      <h2>商品別セッション</h2>
+      <table>
+        <thead><tr><th>商品名</th><th>セッション</th><th>PV</th><th>CVR</th></tr></thead>
+        <tbody id="session-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== SNS ===== -->
+  <div id="page-sns" style="display:none">
+    <div class="header"><h1>SNS連携</h1><p>各SNSのフォロワー・エンゲージメント</p></div>
+    <div class="kpi-grid" id="sns-detail-cards"></div>
+    <div class="section">
+      <h2>SNS投稿パフォーマンス</h2>
+      <table>
+        <thead><tr><th>媒体</th><th>フォロワー</th><th>いいね(今月)</th><th>エンゲージメント率</th></tr></thead>
+        <tbody id="sns-table"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ===== レビュー ===== -->
+  <div id="page-reviews" style="display:none">
+    <div class="header"><h1>レビュー管理</h1><p>全レビュー一覧</p></div>
+    <div class="section" id="all-reviews"></div>
+  </div>
+
+  <!-- ===== データ設定 ===== -->
+  <div id="page-settings" style="display:none">
+    <div class="header"><h1>データ設定</h1><p>Googleスプレッドシートからデータを読み込みます</p></div>
+    <div class="settings-panel">
+      <h3>📋 Googleスプレッドシートの接続方法</h3>
+      <p>
+        1. Googleスプレッドシートを開く<br>
+        2.「ファイル」→「共有」→「ウェブに公開」を選択<br>
+        3. 形式を「カンマ区切り (.csv)」にして「公開」<br>
+        4. 表示されたURLをここに貼り付ける<br><br>
+        ※ シートごとにURLが違います。下のテンプレートに合わせてシートを作ってください。
+      </p>
+    </div>
+
+    <div class="section">
+      <h2>シートURL設定</h2>
+      <p style="font-size:13px;color:#6b7280;margin-bottom:16px;">各シートの公開CSVリンクを入力してください</p>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;">KPI（売上概要）シート</label>
+        <input id="url-kpi" placeholder="https://docs.google.com/spreadsheets/d/e/xxx/pub?output=csv" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;">在庫シート</label>
+        <input id="url-inventory" placeholder="https://docs.google.com/spreadsheets/d/e/xxx/pub?gid=xxx&output=csv" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;">ランキングシート</label>
+        <input id="url-ranking" placeholder="https://docs.google.com/spreadsheets/d/e/xxx/pub?gid=xxx&output=csv" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;">セッションシート</label>
+        <input id="url-session" placeholder="https://docs.google.com/spreadsheets/d/e/xxx/pub?gid=xxx&output=csv" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;">SNSシート</label>
+        <input id="url-sns" placeholder="https://docs.google.com/spreadsheets/d/e/xxx/pub?gid=xxx&output=csv" />
+      </div>
+      <div style="margin-bottom:12px;">
+        <label style="font-size:13px;font-weight:600;">レビューシート</label>
+        <input id="url-reviews" placeholder="https://docs.google.com/spreadsheets/d/e/xxx/pub?gid=xxx&output=csv" />
+      </div>
+      <button onclick="saveAndLoad()">保存して読み込み</button>
+      <button onclick="loadDemoData()" style="background:#10b981;">デモデータで表示</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ===== ページ切り替え =====
+function showPage(page) {
+  document.querySelectorAll('[id^="page-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('page-' + page).style.display = 'block';
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// ===== CSV パーサー =====
+function parseCSV(text) {
+  const lines = text.trim().split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v => v.trim().replace(/^"|"$/g, ''));
+    const obj = {};
+    headers.forEach((h, i) => obj[h] = vals[i] || '');
+    return obj;
+  });
+}
+
+// ===== 数値フォーマット =====
+function fmtNum(n) {
+  const num = parseFloat(n);
+  if (isNaN(num)) return n;
+  return num.toLocaleString('ja-JP');
+}
+function fmtYen(n) {
+  const num = parseFloat(n);
+  if (isNaN(num)) return n;
+  return '¥' + num.toLocaleString('ja-JP');
+}
+function changeHtml(val) {
+  const n = parseFloat(val);
+  if (isNaN(n)) return '<span class="change neutral">--</span>';
+  const cls = n > 0 ? 'up' : n < 0 ? 'down' : 'neutral';
+  const arrow = n > 0 ? '↑' : n < 0 ? '↓' : '→';
+  return `<span class="change ${cls}">${arrow} ${Math.abs(n)}%</span>`;
+}
+
+// ===== データ読み込み & 描画 =====
+async function fetchSheet(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  return parseCSV(text);
+}
+
+function renderKPI(data) {
+  if (!data || !data[0]) return;
+  const d = data[0];
+  document.getElementById('kpi-sales').textContent = fmtYen(d['売上'] || d['sales'] || 0);
+  document.getElementById('kpi-orders').textContent = fmtNum(d['注文数'] || d['orders'] || 0);
+  document.getElementById('kpi-sessions').textContent = fmtNum(d['セッション'] || d['sessions'] || 0);
+  document.getElementById('kpi-review').textContent = (d['レビュー平均'] || d['review_avg'] || '--');
+  document.getElementById('kpi-cvr').textContent = (d['CVR'] || d['cvr'] || '--') + '%';
+
+  document.getElementById('kpi-sales-change').innerHTML = changeHtml(d['売上前月比'] || d['sales_change']);
+  document.getElementById('kpi-orders-change').innerHTML = changeHtml(d['注文前月比'] || d['orders_change']);
+  document.getElementById('kpi-sessions-change').innerHTML = changeHtml(d['セッション前月比'] || d['sessions_change']);
+  document.getElementById('kpi-review-change').innerHTML = changeHtml(d['レビュー前月比'] || d['review_change']);
+  document.getElementById('kpi-cvr-change').innerHTML = changeHtml(d['CVR前月比'] || d['cvr_change']);
+
+  document.getElementById('last-update').textContent = '最終更新: ' + new Date().toLocaleString('ja-JP');
+}
+
+function stockBadge(qty, threshold) {
+  const q = parseInt(qty);
+  const t = parseInt(threshold) || 10;
+  if (q <= 0) return '<span class="stock-badge stock-out">欠品</span>';
+  if (q <= t) return '<span class="stock-badge stock-low">残少</span>';
+  return '<span class="stock-badge stock-ok">OK</span>';
+}
+
+function renderInventory(data) {
+  // アラート（ホーム用）
+  const alerts = data.filter(d => parseInt(d['在庫数'] || d['stock'] || 0) <= parseInt(d['発注点'] || d['reorder'] || 10));
+  document.getElementById('stock-alert-count').textContent = alerts.length + '件';
+  document.getElementById('stock-alert-table').innerHTML = alerts.slice(0, 5).map(d => {
+    const name = d['商品名'] || d['name'];
+    const qty = d['在庫数'] || d['stock'];
+    const th = d['発注点'] || d['reorder'] || 10;
+    return `<tr><td>${name}</td><td>${qty}</td><td>${stockBadge(qty, th)}</td></tr>`;
+  }).join('') || '<tr><td colspan="3" style="color:#10b981;text-align:center;">問題なし ✓</td></tr>';
+
+  // フルテーブル
+  document.getElementById('full-inventory-table').innerHTML = data.map(d => {
+    const name = d['商品名'] || d['name'];
+    const sku = d['SKU'] || d['sku'] || '-';
+    const qty = d['在庫数'] || d['stock'];
+    const th = d['発注点'] || d['reorder'] || 10;
+    return `<tr><td>${name}</td><td>${sku}</td><td>${qty}</td><td>${stockBadge(qty, th)}</td><td>${th}</td></tr>`;
+  }).join('');
+}
+
+function renderRanking(data) {
+  const sorted = data.sort((a, b) => parseFloat(b['売上'] || b['sales'] || 0) - parseFloat(a['売上'] || a['sales'] || 0));
+  // ホーム TOP5
+  document.getElementById('ranking-table').innerHTML = sorted.slice(0, 5).map((d, i) => {
+    const cls = i < 3 ? `rank-${i+1}` : 'rank-other';
+    const name = d['商品名'] || d['name'];
+    const sales = fmtYen(d['売上'] || d['sales']);
+    return `<tr><td><span class="rank-badge ${cls}">${i+1}</span></td><td>${name}</td><td>${sales}</td></tr>`;
+  }).join('');
+
+  // フルテーブル
+  document.getElementById('full-ranking-table').innerHTML = sorted.map((d, i) => {
+    const cls = i < 3 ? `rank-${i+1}` : 'rank-other';
+    const name = d['商品名'] || d['name'];
+    const sales = fmtYen(d['売上'] || d['sales']);
+    const orders = fmtNum(d['注文数'] || d['orders'] || '-');
+    const cvr = (d['CVR'] || d['cvr'] || '-') + (d['CVR'] ? '%' : '');
+    return `<tr><td><span class="rank-badge ${cls}">${i+1}</span></td><td>${name}</td><td>${sales}</td><td>${orders}</td><td>${cvr}</td></tr>`;
+  }).join('');
+}
+
+function renderSession(data) {
+  let totalS = 0, totalPV = 0;
+  data.forEach(d => {
+    totalS += parseInt(d['セッション'] || d['sessions'] || 0);
+    totalPV += parseInt(d['PV'] || d['pv'] || 0);
+  });
+  document.getElementById('session-total').textContent = fmtNum(totalS);
+  document.getElementById('session-pv').textContent = fmtNum(totalPV);
+  document.getElementById('session-cvr').textContent = data[0] ? (data[0]['CVR'] || data[0]['cvr'] || '--') + '%' : '--';
+  document.getElementById('session-cart').textContent = data[0] ? (data[0]['カート率'] || data[0]['cart_rate'] || '--') + '%' : '--';
+
+  document.getElementById('session-table').innerHTML = data.map(d => {
+    const name = d['商品名'] || d['name'];
+    const s = fmtNum(d['セッション'] || d['sessions']);
+    const pv = fmtNum(d['PV'] || d['pv'] || '-');
+    const cvr = (d['CVR'] || d['cvr'] || '-') + (d['CVR'] || d['cvr'] ? '%' : '');
+    return `<tr><td>${name}</td><td>${s}</td><td>${pv}</td><td>${cvr}</td></tr>`;
+  }).join('');
+}
+
+function renderSNS(data) {
+  const colors = { 'X': 'x-card', 'Instagram': 'ig-card', 'TikTok': 'tiktok-card' };
+  // ホーム概要
+  document.getElementById('sns-summary').innerHTML = data.map(d => {
+    const name = d['媒体'] || d['platform'];
+    const cls = colors[name] || 'x-card';
+    const followers = fmtNum(d['フォロワー'] || d['followers']);
+    return `<div class="sns-card ${cls}"><div class="sns-name">${name}</div><div class="sns-value">${followers}</div><div class="sns-label">フォロワー</div></div>`;
+  }).join('');
+
+  // 詳細テーブル
+  document.getElementById('sns-table').innerHTML = data.map(d => {
+    const name = d['媒体'] || d['platform'];
+    const followers = fmtNum(d['フォロワー'] || d['followers']);
+    const likes = fmtNum(d['いいね'] || d['likes'] || '-');
+    const eng = (d['エンゲージメント率'] || d['engagement'] || '-');
+    return `<tr><td><strong>${name}</strong></td><td>${followers}</td><td>${likes}</td><td>${eng}</td></tr>`;
+  }).join('');
+}
+
+function starRating(n) {
+  const num = parseFloat(n) || 0;
+  return '<span class="star">' + '★'.repeat(Math.round(num)) + '☆'.repeat(5 - Math.round(num)) + '</span>';
+}
+
+function renderReviews(data) {
+  const html = data.map(d => {
+    const reviewer = d['投稿者'] || d['reviewer'] || '匿名';
+    const rating = d['評価'] || d['rating'] || 5;
+    const text = d['コメント'] || d['comment'] || '';
+    const product = d['商品名'] || d['product'] || '';
+    const date = d['日付'] || d['date'] || '';
+    return `<div class="review-card"><div class="review-header"><span class="reviewer">${reviewer} ${starRating(rating)}</span><span class="review-date">${date}</span></div><div class="review-text">${text}</div><div class="review-product">📦 ${product}</div></div>`;
+  }).join('');
+
+  document.getElementById('recent-reviews').innerHTML = data.slice(0, 3).map(d => {
+    const reviewer = d['投稿者'] || d['reviewer'] || '匿名';
+    const rating = d['評価'] || d['rating'] || 5;
+    const text = d['コメント'] || d['comment'] || '';
+    const product = d['商品名'] || d['product'] || '';
+    return `<div class="review-card"><div class="review-header"><span class="reviewer">${reviewer} ${starRating(rating)}</span></div><div class="review-text">${text}</div><div class="review-product">📦 ${product}</div></div>`;
+  }).join('') || '<p style="color:#9ca3af;text-align:center;">データなし</p>';
+
+  document.getElementById('all-reviews').innerHTML = html || '<p style="color:#9ca3af;text-align:center;">データなし</p>';
+}
+
+// ===== ローカルストレージ保存 & 読み込み =====
+function saveAndLoad() {
+  const urls = {
+    kpi: document.getElementById('url-kpi').value,
+    inventory: document.getElementById('url-inventory').value,
+    ranking: document.getElementById('url-ranking').value,
+    session: document.getElementById('url-session').value,
+    sns: document.getElementById('url-sns').value,
+    reviews: document.getElementById('url-reviews').value,
+  };
+  // URLをページ内変数に保存（localStorageは使わない）
+  window._sheetUrls = urls;
+  loadFromSheets(urls);
+}
+
+async function loadFromSheets(urls) {
+  try {
+    if (urls.kpi) renderKPI(await fetchSheet(urls.kpi));
+    if (urls.inventory) renderInventory(await fetchSheet(urls.inventory));
+    if (urls.ranking) renderRanking(await fetchSheet(urls.ranking));
+    if (urls.session) renderSession(await fetchSheet(urls.session));
+    if (urls.sns) renderSNS(await fetchSheet(urls.sns));
+    if (urls.reviews) renderReviews(await fetchSheet(urls.reviews));
+  } catch (e) {
+    alert('シートの読み込みに失敗しました: ' + e.message);
+  }
+}
+
+// ===== デモデータ =====
+function loadDemoData() {
+  renderKPI([{ '売上': 1285000, '注文数': 342, 'セッション': 18500, 'レビュー平均': '4.3', 'CVR': '1.85', '売上前月比': 12.3, '注文前月比': 8.5, 'セッション前月比': 5.2, 'レビュー前月比': 0.1, 'CVR前月比': 0.3 }]);
+
+  renderInventory([
+    { '商品名': 'オーガニック抹茶パウダー 100g', 'SKU': 'MAT-001', '在庫数': 3, '発注点': 10 },
+    { '商品名': '高級ほうじ茶ティーバッグ 30P', 'SKU': 'HOU-002', '在庫数': 8, '発注点': 15 },
+    { '商品名': '玄米茶ギフトセット', 'SKU': 'GEN-003', '在庫数': 0, '発注点': 5 },
+    { '商品名': '深蒸し煎茶 200g', 'SKU': 'SEN-004', '在庫数': 45, '発注点': 10 },
+    { '商品名': '抹茶ラテの素 スティック20本', 'SKU': 'LAT-005', '在庫数': 120, '発注点': 20 },
+    { '商品名': '冷茶ボトル 500ml', 'SKU': 'BOT-006', '在庫数': 67, '発注点': 15 },
+  ]);
+
+  renderRanking([
+    { '商品名': 'オーガニック抹茶パウダー 100g', '売上': 385000, '注文数': 128, 'CVR': '2.4' },
+    { '商品名': '抹茶ラテの素 スティック20本', '売上': 298000, '注文数': 89, 'CVR': '2.1' },
+    { '商品名': '深蒸し煎茶 200g', '売上': 245000, '注文数': 67, 'CVR': '1.8' },
+    { '商品名': '高級ほうじ茶ティーバッグ 30P', '売上': 198000, '注文数': 45, 'CVR': '1.5' },
+    { '商品名': '玄米茶ギフトセット', '売上': 159000, '注文数': 13, 'CVR': '0.9' },
+  ]);
+
+  renderSession([
+    { '商品名': 'オーガニック抹茶パウダー 100g', 'セッション': 5300, 'PV': 7800, 'CVR': '2.4', 'カート率': '4.8' },
+    { '商品名': '抹茶ラテの素 スティック20本', 'セッション': 4200, 'PV': 5900, 'CVR': '2.1', 'カート率': '3.9' },
+    { '商品名': '深蒸し煎茶 200g', 'セッション': 3700, 'PV': 4500, 'CVR': '1.8', 'カート率': '3.2' },
+    { '商品名': '高級ほうじ茶ティーバッグ 30P', 'セッション': 3000, 'PV': 3800, 'CVR': '1.5', 'カート率': '2.8' },
+    { '商品名': '玄米茶ギフトセット', 'セッション': 2300, 'PV': 3100, 'CVR': '0.9', 'カート率': '1.5' },
+  ]);
+
+  renderSNS([
+    { '媒体': 'X', 'フォロワー': 2450, 'いいね': 3200, 'エンゲージメント率': '4.2%' },
+    { '媒体': 'Instagram', 'フォロワー': 5830, 'いいね': 8900, 'エンゲージメント率': '5.8%' },
+    { '媒体': 'TikTok', 'フォロワー': 1200, 'いいね': 15000, 'エンゲージメント率': '8.3%' },
+  ]);
+
+  renderReviews([
+    { '投稿者': 'お茶好きママ', '評価': 5, 'コメント': '毎朝の抹茶ラテに使っています。泡立ちも良く、味も濃くて最高です！リピ確定。', '商品名': 'オーガニック抹茶パウダー 100g', '日付': '2026/03/10' },
+    { '投稿者': 'greentea_fan', '評価': 4, 'コメント': 'ギフトで購入。包装も丁寧で喜ばれました。味はまだ分かりませんが見た目◎', '商品名': '玄米茶ギフトセット', '日付': '2026/03/08' },
+    { '投稿者': '健康志望35歳', '評価': 5, 'コメント': '深蒸しなので渋みが少なく飲みやすいです。水出しにしても美味しかった。', '商品名': '深蒸し煎茶 200g', '日付': '2026/03/05' },
+    { '投稿者': 'Amazon太郎', '評価': 3, 'コメント': '普通のほうじ茶でした。可もなく不可もなく。もう少し香ばしさが欲しかったかも。', '商品名': '高級ほうじ茶ティーバッグ 30P', '日付': '2026/03/02' },
+  ]);
+
+  document.getElementById('last-update').textContent = '最終更新: ' + new Date().toLocaleString('ja-JP') + ' (デモ)';
+}
+
+// 初期表示: デモデータ
+loadDemoData();
+</script>
+</body>
+</html>
+

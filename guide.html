@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EC Dashboard ガイド</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Noto Sans JP', sans-serif; background: #f8fafc; color: #1e293b; line-height: 1.8; }
+
+  .hero {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a78bfa 100%);
+    color: #fff; padding: 60px 40px; text-align: center;
+  }
+  .hero h1 { font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+  .hero p { font-size: 16px; opacity: 0.9; }
+
+  .container { max-width: 860px; margin: 0 auto; padding: 40px 24px; }
+
+  .toc {
+    background: #fff; border-radius: 16px; padding: 28px 32px;
+    margin-bottom: 40px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .toc h2 { font-size: 18px; font-weight: 700; margin-bottom: 16px; color: #6366f1; }
+  .toc a {
+    display: block; padding: 8px 0; color: #475569; text-decoration: none;
+    font-size: 15px; border-bottom: 1px solid #f1f5f9; transition: color 0.2s;
+  }
+  .toc a:hover { color: #6366f1; }
+  .toc a:last-child { border-bottom: none; }
+  .toc .num {
+    display: inline-block; width: 28px; height: 28px; line-height: 28px;
+    text-align: center; background: #ede9fe; color: #6366f1; border-radius: 8px;
+    font-size: 13px; font-weight: 700; margin-right: 10px;
+  }
+
+  .section {
+    background: #fff; border-radius: 16px; padding: 32px;
+    margin-bottom: 28px; box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .section h2 {
+    font-size: 20px; font-weight: 800; margin-bottom: 20px;
+    padding-bottom: 12px; border-bottom: 3px solid #6366f1;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .section h3 {
+    font-size: 16px; font-weight: 700; margin: 24px 0 12px;
+    color: #6366f1;
+  }
+  .section p { font-size: 14px; margin-bottom: 12px; }
+
+  .card-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px; margin: 16px 0;
+  }
+  .explain-card {
+    border: 2px solid #e2e8f0; border-radius: 14px; padding: 20px;
+    transition: border-color 0.2s;
+  }
+  .explain-card:hover { border-color: #6366f1; }
+  .explain-card .card-icon { font-size: 28px; margin-bottom: 8px; }
+  .explain-card .card-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+  .explain-card .card-desc { font-size: 13px; color: #64748b; line-height: 1.7; }
+
+  .highlight-box {
+    background: #ede9fe; border-left: 4px solid #6366f1;
+    padding: 16px 20px; border-radius: 0 12px 12px 0;
+    margin: 16px 0; font-size: 14px;
+  }
+  .highlight-box strong { color: #6366f1; }
+
+  .warning-box {
+    background: #fef3c7; border-left: 4px solid #f59e0b;
+    padding: 16px 20px; border-radius: 0 12px 12px 0;
+    margin: 16px 0; font-size: 14px;
+  }
+
+  .step-list { counter-reset: step; list-style: none; margin: 16px 0; }
+  .step-list li {
+    counter-increment: step; position: relative;
+    padding: 16px 16px 16px 56px; margin-bottom: 12px;
+    background: #f8fafc; border-radius: 12px;
+    font-size: 14px;
+  }
+  .step-list li::before {
+    content: counter(step);
+    position: absolute; left: 16px; top: 16px;
+    width: 28px; height: 28px; line-height: 28px;
+    text-align: center; background: #6366f1; color: #fff;
+    border-radius: 50%; font-size: 13px; font-weight: 700;
+  }
+
+  .table-example {
+    width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px;
+  }
+  .table-example th {
+    background: #6366f1; color: #fff; padding: 10px 12px;
+    text-align: left; font-weight: 600;
+  }
+  .table-example td {
+    padding: 10px 12px; border-bottom: 1px solid #e2e8f0;
+  }
+  .table-example tr:nth-child(even) td { background: #f8fafc; }
+
+  .badge {
+    display: inline-block; padding: 2px 10px; border-radius: 10px;
+    font-size: 12px; font-weight: 600;
+  }
+  .badge-required { background: #fee2e2; color: #dc2626; }
+ .badge-optional { background: #dbeafe; color: #3b82f6; }
+
+  .flow-diagram {
+    background: #f1f5f9; border-radius: 14px; padding: 24px;
+    margin: 16px 0; text-align: center;
+  }
+  .flow-step {
+    display: inline-block; background: #fff; border: 2px solid #e2e8f0;
+    border-radius: 12px; padding: 12px 20px; margin: 6px;
+    font-size: 13px; font-weight: 600; vertical-align: middle;
+  }
+  .flow-step.active { border-color: #6366f1; background: #ede9fe; color: #6366f1; }
+  .flow-arrow {
+    display: inline-block; font-size: 20px; color: #6366f1;
+    margin: 0 4px; vertical-align: middle;
+  }
+
+  .code-block {
+    background: #1e293b; color: #e2e8f0; padding: 16px 20px;
+    border-radius: 12px; font-family: monospace; font-size: 13px;
+    overflow-x: auto; margin: 12px 0; line-height: 1.6;
+  }
+
+  .footer {
+    text-align: center; padding: 40px; color: #94a3b8; font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>📊 EC Dashboard 完全ガイド</h1>
+  <p>ダッシュボードの使い方・各項目の意味・セットアップの全手順</p>
+</div>
+
+<div class="container">
+
+  <!-- 目次 -->
+  <div class="toc">
+    <h2>📋 もくじ</h2>
+    <a href="#what"><span class="num">1</span>そもそもこのダッシュボードって何？</a>
+    <a href="#pages"><span class="num">2</span>各ページの意味と見方</a>
+    <a href="#kpi"><span class="num">3</span>KPIカードの意味（数字の読み方）</a>
+    <a href="#flow"><span class="num">4</span>セットアップの全体フロー</a>
+    <a href="#sheet"><span class="num">5</span>Googleスプレッドシートの作り方</a>
+    <a href="#connect"><span class="num">6</span>ダッシュボードとシートをつなぐ方法</a>
+    <a href="#update"><span class="num">7</span>データの更新方法</a>
+    <a href="#faq"><span class="num">8</span>よくある質問</a>
+  </div>
+
+  <!-- 1. そもそもこれ何？ -->
+  <div class="section" id="what">
+    <h2>🏠 1. そもそもこのダッシュボードって何？</h2>
+    <p>ECの運営に必要な数字（売上・在庫・ランキングなど）を <strong>ひとめで確認できる管理画面</strong> です。</p>
+    <p>Xで見たSNS Autoのダッシュボードと同じように、左にメニュー・右にデータカードが並ぶレイアウトで、ECに特化した項目を表示しています。</p>
+
+    <div class="highlight-box">
+      <strong>ポイント：</strong>Amazon/楽天のセラーセントラルや管理画面にログインしなくても、Googleスプレッドシートにデータを入力するだけで、このダッシュボードに自動反映される仕組み。
+    </div>
+
+    <div class="flow-diagram">
+      <div class="flow-step">Amazon/楽天<br>管理画面</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">Google<br>スプレッドシート</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">EC<br>Dashboard</div>
+    </div>
+    <p style="text-align:center;font-size:13px;color:#64748b;">データの流れ：管理画面の数字をスプレッドシートに入力 → ダッシュボードに自動表示</p>
+  </div>
+
+  <!-- 2. 各ページ -->
+  <div class="section" id="pages">
+    <h2>📑 2. 各ページの意味と見方</h2>
+    <p>左サイドバーから6つのページに切り替えられます。</p>
+
+    <div class="card-grid">
+      <div class="explain-card">
+        <div class="card-icon">🏠</div>
+        <div class="card-title">ホーム</div>
+        <div class="card-desc">全体の概要。KPI（重要指標）5つ + 在庫アラート + ランキングTOP5 + SNS + 最新レビューがまとまったページ。<strong>毎日最初に見る場所。</strong></div>
+      </div>
+      <div class="explain-card">
+        <div class="card-icon">📦</div>
+        <div class="card-title">在庫管理</div>
+        <div class="card-desc">全商品の在庫数と状態を表示。在庫が「発注点」以下になると<span style="color:#dc2626;font-weight:600;">赤アラート</span>が出る。<strong>欠品防止に必須。</strong></div>
+      </div>
+      <div class="explain-card">
+        <div class="card-icon">🏆</div>
+        <div class="card-title">ランキング</div>
+        <div class="card-desc">商品を売上順に並べて表示。<strong>どの商品が稼いでるか</strong>が一目でわかる。広告費の配分を決める判断材料。</div>
+      </div>
+      <div class="explain-card">
+        <div class="card-icon">👁</div>
+        <div class="card-title">セッション</div>
+        <div class="card-desc">アクセス数・PV・CVR・カート追加率。<strong>お客さんがどれくらい来て、何%が買ってくれたか</strong>を見る場所。</div>
+      </div>
+      <div class="explain-card">
+        <div class="card-icon">📱</div>
+        <div class="card-title">SNS</div>
+        <div class="card-desc">X・Instagram・TikTokのフォロワー数・いいね・エンゲージメント率。<strong>SNS経由の集客力</strong>をチェック。</div>
+      </div>
+      <div class="explain-card">
+        <div class="card-icon">⭐</div>
+        <div class="card-title">レビュー</div>
+        <div class="card-desc">最新のお客さんレビューを一覧表示。★評価・コメント・商品名。<strong>悪いレビューを早く見つけて対応</strong>するのが目的。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. KPIの意味 -->
+  <div class="section" id="kpi">
+    <h2>📊 3. KPIカードの意味（数字の読み方）</h2>
+    <p>ホーム画面に並んでいる5つのカードの意味を解説します。</p>
+
+    <table class="table-example">
+      <tr>
+        <th>カード</th>
+        <th>何の数字？</th>
+        <th>なぜ大事？</th>
+        <th>目安</th>
+      </tr>
+      <tr>
+        <td><strong>💰 今月の売上</strong></td>
+        <td>今月の合計売上金額</td>
+        <td>ビジネスの一番大事な指標。前月比で伸びてるか確認</td>
+        <td>前月比 +5%以上が理想</td>
+      </tr>
+      <tr>
+        <td><strong>📦 注文数</strong></td>
+        <td>今月の注文件数</td>
+        <td>客単価×注文数＝売上。売上が下がったとき「注文が減ったのか？客単価が下がったのか？」を切り分ける</td>
+        <td>前月比でキープ以上</td>
+      </tr>
+      <tr>
+        <td><strong>👁 セッション数</strong></td>
+        <td>商品ページを訪れた人の数</td>
+        <td>お客さんの「入口」の数。ここが少ないとそもそも買ってもらえない</td>
+        <td>広告・SNS経由で増やす</td>
+      </tr>
+      <tr>
+        <td><strong>⭐ 平均レビュー</strong></td>
+        <td>全商品のレビュー星平均</td>
+        <td>⭐4以上が購入率に大きく影響。⭐3以下は要改善</td>
+        <td>⭐4.0以上キープ</td>
+      </tr>
+      <tr>
+        <td><strong>📈 転換率 (CVR)</strong></td>
+        <td>ページを見た人のうち、何%が購入したか</td>
+        <td><strong>EC最重要指標のひとつ</strong>。同じアクセスでもCVRが上がれば売上が倍になる</td>
+        <td>Amazon: 10-15%<br>楽天: 2-5%</td>
+      </tr>
+    </table>
+
+    <div class="highlight-box">
+      <strong>前月比の見方：</strong> 各カードの右上に「↑ 12.3%」「↓ 2.1%」と表示されます。<br>
+      🟢 緑（↑） = 前月より良い　🔴 赤（↓） = 前月より悪い　⬜ グレー（→） = 変化なし
+    </div>
+
+    <h3>在庫の状態バッジ</h3>
+    <table class="table-example">
+      <tr><th>バッジ</th><th>意味</th><th>アクション</th></tr>
+      <tr><td><span class="badge" style="background:#d1fae5;color:#059669;">OK</span></td><td>在庫に余裕あり</td><td>そのまま放置でOK</td></tr>
+      <tr><td><span class="badge" style="background:#fef3c7;color:#d97706;">残少</span></td><td>発注点を下回っている</td><td>早めに発注する</td></tr>
+      <tr><td><span class="badge badge-required">欠品</span></td><td>在庫ゼロ</td><td>緊急対応！売り逃し中</td></tr>
+    </table>
+  </div>
+
+  <!-- 4. 全体フロー -->
+  <div class="section" id="flow">
+    <h2>🔄 4. セットアップの全体フロー</h2>
+    <p>ダッシュボードを実際に使えるようにするまでのステップです。</p>
+
+    <ol class="step-list">
+      <li>
+        <strong>Googleスプレッドシートを作る</strong><br>
+        6つのシートを作って、決まった列名でデータを入力する（次のセクションで詳しく解説）
+      </li>
+      <li>
+        <strong>スプレッドシートをウェブに公開する</strong><br>
+        「ファイル → 共有 → ウェブに公開」で、CSVリンクを取得する
+      </li>
+      <li>
+        <strong>ダッシュボードにリンクを貼る</strong><br>
+        ダッシュボードの「データ設定」ページで、取得したCSVリンクを各欄に貼り付け
+      </li>
+      <li>
+        <strong>「保存して読み込み」ボタンを押す</strong><br>
+        スプレッドシートのデータがダッシュボードに反映される
+      </li>
+      <li>
+        <strong>日々の運用：スプレッドシートを更新するだけ</strong><br>
+        Amazon/楽天の管理画面から数字をコピペ → ダッシュボード側でリロードすれば更新完了
+      </li>
+    </ol>
+
+    <div class="flow-diagram">
+      <div class="flow-step">① シート作成</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">② ウェブ公開</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step">③ URL貼付</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-step active">✅ 完成！</div>
+    </div>
+  </div>
+
+  <!-- 5. スプレッドシート作り方 -->
+  <div class="section" id="sheet">
+    <h2>📝 5. Googleスプレッドシートの作り方</h2>
+    <p>1つのスプレッドシートに<strong>6つのシート（タブ）</strong>を作ります。シート名と列名は以下の通り。</p>
+
+    <h3>シート① KPI（売上概要）</h3>
+    <p>1行目にヘッダー、2行目にデータを入れるだけ。</p>
+    <table class="table-example">
+      <tr>
+        <th>売上</th><th>注文数</th><th>セッション</th><th>レビュー平均</th><th>CVR</th>
+        <th>売上前月比</th><th>注文前月比</th><th>セッション前月比</th><th>レビュー前月比</th><th>CVR前月比</th>
+      </tr>
+      <tr>
+        <td>1285000</td><td>342</td><td>18500</td><td>4.3</td><td>1.85</td>
+        <td>12.3</td><td>8.5</td><td>5.2</td><td>0.1</td><td>0.3</td>
+      </tr>
+    </table>
+    <div class="warning-box">⚠️ 売上は数字だけ（￥マークなし）。前月比は%の数字だけ（%マークなし）。マイナスの場合は -5.2 のように入力。</div>
+
+    <h3>シート② 在庫</h3>
+    <table class="table-example">
+      <tr>
+        <th>商品名 <span class="badge badge-required">必須</span></th>
+        <th>SKU <span class="badge badge-optional">任意</span></th>
+        <th>在庫数 <span class="badge badge-required">必須</span></th>
+        <th>発注点 <span class="badge badge-optional">任意</span></th>
+      </tr>
+      <tr><td>オーガニック抹茶パウダー 100g</td><td>MAT-001</td><td>3</td><td>10</td></tr>
+      <tr><td>高級ほうじ茶ティーバッグ 30P</td><td>HOU-002</td><td>45</td><td>15</td></tr>
+    </table>
+    <p>※「発注点」を省略すると自動で10が使われます。在庫数が発注点以下だとアラートが出ます。</p>
+
+    <h3>シート③ ランキング</h3>
+    <table class="table-example">
+      <tr>
+        <th>商品名 <span class="badge badge-required">必須</span></th>
+        <th>売上 <span class="badge badge-required">必須</span></th>
+        <th>注文数 <span class="badge badge-optional">任意</span></th>
+        <th>CVR <span class="badge badge-optional">任意</span></th>
+      </tr>
+      <tr><td>オーガニック抹茶パウダー 100g</td><td>385000</td><td>128</td><td>2.4</td></tr>
+      <tr><td>抹茶ラテの素 スティック20本</td><td>298000</td><td>89</td><td>2.1</td></tr>
+    </table>
+
+    <h3>シート④ セッション</h3>
+    <table class="table-example">
+      <tr>
+        <th>商品名</th><th>セッション</th><th>PV</th><th>CVR</th><th>カート率</th>
+      </tr>
+      <tr><td>オーガニック抹茶パウダー</td><td>5300</td><td>7800</td><td>2.4</td><td>4.8</td></tr>
+    </table>
+
+    <h3>シート⑤ SNS</h3>
+    <table class="table-example">
+      <tr><th>媒体</th><th>フォロワー</th><th>いいね</th><th>エンゲージメント率</th></tr>
+      <tr><td>X</td><td>2450</td><td>3200</td><td>4.2%</td></tr>
+      <tr><td>Instagram</td><td>5830</td><td>8900</td><td>5.8%</td></tr>
+    </table>
+
+    <h3>シート⑥ レビュー</h3>
+    <table class="table-example">
+      <tr><th>投稿者</th><th>評価</th><th>コメント</th><th>商品名</th><th>日付</th></tr>
+      <tr><td>お茶好きママ</td><td>5</td><td>毎朝の抹茶ラテに使ってます...</td><td>オーガニック抹茶パウダー</td><td>2026/03/10</td></tr>
+    </table>
+  </div>
+
+  <!-- 6. つなぐ方法 -->
+  <div class="section" id="connect">
+    <h2>🔗 6. ダッシュボードとシートをつなぐ方法</h2>
+
+    <h3>Step A: スプレッドシートをウェブに公開</h3>
+    <ol class="step-list">
+      <li>
+        <strong>Googleスプレッドシートを開く</strong><br>
+        先ほど作った6シートのスプレッドシートを開きます
+      </li>
+      <li>
+        <strong>メニュー →「ファイル」→「共有」→「ウェブに公開」</strong><br>
+        ポップアップが出てきます
+      </li>
+      <li>
+        <strong>シート1つ選んで、形式を「カンマ区切り (.csv)」にする</strong><br>
+        例：まず「KPI」シートを選択 → .csv → 「公開」ボタン
+      </li>
+      <li>
+        <strong>表示されたURLをコピー</strong><br>
+        こんな形のURLが出る：<br>
+        <div class="code-block">https://docs.google.com/spreadsheets/d/e/2PACX-xxxxx/pub?gid=0&single=true&output=csv</div>
+      </li>
+      <li>
+        <strong>6シート分、同じ操作を繰り返す</strong><br>
+        シートごとにURLが違うので、メモ帳にメモしておく
+      </li>
+    </ol>
+
+    <h3>Step B: ダッシュボードにURLを貼る</h3>
+    <ol class="step-list">
+      <li><strong>ec-dashboard.html をブラウザで開く</strong></li>
+      <li><strong>左メニューの「データ設定」をクリック</strong></li>
+      <li><strong>各シートのURL欄に、Step AでコピーしたURLを貼り付ける</strong></li>
+      <li><strong>「保存して読み込み」ボタンをクリック</strong></li>
+    </ol>
+
+    <div class="highlight-box">
+      <strong>これで完了！</strong> スプレッドシートのデータがダッシュボードに表示されます。
+    </div>
+  </div>
+
+  <!-- 7. 更新方法 -->
+  <div class="section" id="update">
+    <h2>🔄 7. データの更新方法</h2>
+
+    <h3>日々のルーティン（5分で終わる）</h3>
+    <ol class="step-list">
+      <li>
+        <strong>Amazonセラーセントラル / 楽天RMSにログイン</strong><br>
+        いつも見ている管理画面を開く
+      </li>
+      <li>
+        <strong>数字をスプレッドシートにコピペ</strong><br>
+        売上・注文数・在庫数などをシートの該当欄に入力
+      </li>
+      <li>
+        <strong>ダッシュボードをリロード（F5）</strong><br>
+        「ウェブに公開」したシートは変更が自動で反映されるため、ダッシュボードでページを再読み込みするだけでOK
+      </li>
+    </ol>
+
+    <div class="warning-box">
+      ⚠️ <strong>注意：</strong>「ウェブに公開」はリアルタイムではなく、<strong>数分～最大5分程度の反映遅延</strong>があります。すぐ反映されなくても少し待ってからリロードしてみてください。
+    </div>
+
+    <h3>将来的な自動化（上級者向け）</h3>
+    <p>スプレッドシートへの入力すら自動化したい場合、以下の方法があります：</p>
+    <div class="card-grid">
+      <div class="explain-card">
+        <div class="card-icon">🤖</div>
+        <div class="card-title">Google Apps Script</div>
+        <div class="card-desc">スプレッドシート内にスクリプトを書いて、Amazon SP-APIから自動取得。無料だけどコードが必要。</div>
+      </div>
+      <div class="explain-card">
+        <div class="card-icon">⚡</div>
+        <div class="card-title">Make.com / Zapier</div>
+        <div class="card-desc">ノーコードツールル。Amazon/楽天のデータを定期的にスプレッドシートに書き込む。月額あり。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. FAQ -->
+  <div class="section" id="faq">
+    <h2>❓ 8. よくある質問</h2>
+
+    <h3>Q: デモデータを消して自分のデータにしたい</h3>
+    <p>「データ設定」でスプレッドシートのURLを設定して「保存して読み込み」を押せば、自動的にデモデータが上書きされます。</p>
+
+    <h3>Q: スプレッドシートなしでも使える？</h3>
+    <p>使えます。「デモデータで表示」ボタンを押せばサンプルデータが表示されるので、まず雰囲気を確認できます。</p>
+
+    <h3>Q: スマホでも見れる？</h3>
+    <p>はい。レスポンシブ対応しているので、スマホのブラウザでもHTMLファイルを開けば見られます（サイドバーは自動で非表示になります）。</p>
+
+    <h3>Q: データが表示されない…</h3>
+    <p>以下をチェック：</p>
+    <div class="highlight-box">
+      ① スプレッドシートが「ウェブに公開」されているか確認<br>
+      ② URLの最後が <code>&output=csv</code> で終わっているか確認<br>
+      ③ 列名がガイド通りの日本語になっているか確認<br>
+      ④ ブラウザのコンソール（F12）でエラーが出ていないか確認
+    </div>
+
+    <h3>Q: 項目やデザインを変えたい</h3>
+    <p>HTMLファイルなのでテキストエディタ（VSCodeなど）で自由に編集できます。変えたい箇所があれば、Claudeに「ここをこう変えて」と頼めばOKです。</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  📊 EC Dashboard Guide | Created with Claude
+</div>
+
+</body>
+</html>
+
